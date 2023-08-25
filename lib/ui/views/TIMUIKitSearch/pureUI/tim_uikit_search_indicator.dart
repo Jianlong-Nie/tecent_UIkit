@@ -8,9 +8,12 @@ enum SearchType { contact, group, history }
 class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
   final List<SearchType> typeList;
   final ValueChanged<List<SearchType>> onChange;
-
+  final bool noNeedBack;
   TIMUIKitSearchIndicator(
-      {required this.typeList, required this.onChange, Key? key})
+      {required this.typeList,
+      required this.onChange,
+      this.noNeedBack = false,
+      Key? key})
       : super(key: key);
 
   final titleMap = {
@@ -52,7 +55,8 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
                       child: Container(
                         height: 16,
                         width: 16,
-                        decoration: BoxDecoration(shape: BoxShape.circle, color: theme.primaryColor),
+                        decoration: BoxDecoration(
+                            shape: BoxShape.circle, color: theme.primaryColor),
                         child: const Icon(
                           Icons.check,
                           size: 8,
@@ -75,37 +79,40 @@ class TIMUIKitSearchIndicator extends TIMUIKitStatelessWidget {
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Text(TIM_t("搜索指定内容"),
-                    style: TextStyle(color: theme.weakTextColor, fontSize: 12)),
-              )
-            ],
-          ),
-          const SizedBox(height: 1),
-          Divider(thickness: 0.8, color: theme.weakDividerColor),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            mainAxisSize: MainAxisSize.max,
-            children: [
-              renderItemBox(Icons.person, SearchType.contact,
-                  typeList.contains(SearchType.contact), theme),
-              renderItemBox(Icons.people, SearchType.group,
-                  typeList.contains(SearchType.group), theme),
-              renderItemBox(Icons.message, SearchType.history,
-                  typeList.contains(SearchType.history), theme),
-            ],
-          )
-        ],
-      ),
-    );
+    return noNeedBack
+        ? Container()
+        : Container(
+            padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(TIM_t("搜索指定内容"),
+                          style: TextStyle(
+                              color: theme.weakTextColor, fontSize: 12)),
+                    )
+                  ],
+                ),
+                const SizedBox(height: 1),
+                Divider(thickness: 0.8, color: theme.weakDividerColor),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    renderItemBox(Icons.person, SearchType.contact,
+                        typeList.contains(SearchType.contact), theme),
+                    renderItemBox(Icons.people, SearchType.group,
+                        typeList.contains(SearchType.group), theme),
+                    renderItemBox(Icons.message, SearchType.history,
+                        typeList.contains(SearchType.history), theme),
+                  ],
+                )
+              ],
+            ),
+          );
   }
 }

@@ -1,4 +1,3 @@
-
 import 'package:azlistview_all_platforms/azlistview_all_platforms.dart';
 import 'package:flutter/material.dart';
 import 'package:lpinyin/lpinyin.dart';
@@ -34,6 +33,10 @@ class ContactList extends StatefulWidget {
   /// Control if shows the online status for each user on its avatar.
   final bool isShowOnlineStatus;
 
+  final bool? needExpandList;
+  final bool? showGroup;
+  final bool? showContacts;
+
   final int? maxSelectNum;
 
   final List<V2TimGroupMemberFullInfo?>? groupMemberList;
@@ -55,6 +58,9 @@ class ContactList extends StatefulWidget {
     this.topList,
     this.topListItemBuilder,
     this.isShowOnlineStatus = false,
+    this.needExpandList = false,
+    this.showGroup = true,
+    this.showContacts = true,
     this.maxSelectNum,
     this.groupMemberList,
     this.emptyBuilder,
@@ -123,7 +129,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
           -1;
     }
 
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
     return Container(
       padding: const EdgeInsets.only(top: 8, left: 16, right: 12),
@@ -184,13 +191,15 @@ class _ContactListState extends TIMUIKitState<ContactList> {
   }
 
   Widget generateTopItem(memberInfo) {
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     if (widget.topListItemBuilder != null) {
       final customWidget = widget.topListItemBuilder!(memberInfo);
       if (customWidget != null) {
         return customWidget;
       }
     }
+
     return InkWell(
         onTap: () {
           if (memberInfo.onTap != null) {
@@ -243,14 +252,23 @@ class _ContactListState extends TIMUIKitState<ContactList> {
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final TUITheme theme = value.theme;
 
-    final showList = _getShowList(widget.contactList);
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    var showList = _getShowList(widget.contactList);
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
     if (widget.topList != null && widget.topList!.isNotEmpty) {
       final topList = widget.topList!
           .map((e) => ISuspensionBeanImpl(memberInfo: e, tagIndex: '@'))
           .toList();
-      showList.insertAll(0, topList);
+      if (widget.needExpandList != null) {
+        if (widget.needExpandList! && !widget.showContacts!) {
+          showList = topList;
+        } else {
+          showList.insertAll(0, topList);
+        }
+      } else {
+        showList.insertAll(0, topList);
+      }
     }
 
     if (widget.contactList.isEmpty) {
@@ -312,7 +330,13 @@ class TopListItem {
   final String name;
   final String id;
   final Widget? icon;
+  final bool? isExpandButton;
   final Function()? onTap;
 
-  TopListItem({required this.name, required this.id, this.icon, this.onTap});
+  TopListItem(
+      {required this.name,
+      required this.id,
+      this.icon,
+      this.isExpandButton,
+      this.onTap});
 }

@@ -6,20 +6,16 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_state.dart';
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_group_profile_model.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/text_input_bottom_sheet.dart';
-
 import 'package:tencent_im_base/tencent_im_base.dart';
-
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 
 class GroupProfileNameCard extends StatefulWidget {
   const GroupProfileNameCard({Key? key}) : super(key: key);
-
   @override
   State<StatefulWidget> createState() => GroupProfileNameCardState();
-
 }
 
-class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
+class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard> {
   final TextEditingController controller = TextEditingController();
   String? nameCard;
 
@@ -39,10 +35,12 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
           color: Colors.white,
-          border: isDesktopScreen ? null : Border(
-              bottom: BorderSide(
-                  color:
-                  theme.weakDividerColor ?? CommonColor.weakDividerColor))),
+          border: isDesktopScreen
+              ? null
+              : Border(
+                  bottom: BorderSide(
+                      color: theme.weakDividerColor ??
+                          CommonColor.weakDividerColor))),
       child: GestureDetector(
         onTap: () async {
           if (!isDesktopScreen) {
@@ -75,19 +73,19 @@ class GroupProfileNameCardState extends TIMUIKitState<GroupProfileNameCard>{
                 if (!isDesktopScreen)
                   Expanded(
                       child: Row(
-                        mainAxisAlignment: MainAxisAlignment.end,
-                        children: [
-                          Expanded(
-                              child: Text(
-                                nameCard ?? "",
-                                style: TextStyle(
-                                    fontSize: isDesktopScreen ? 14 : 16,
-                                    color: theme.darkTextColor),
-                              )),
-                          Icon(Icons.keyboard_arrow_right,
-                              color: theme.weakTextColor)
-                        ],
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Expanded(
+                          child: Text(
+                        nameCard ?? "",
+                        style: TextStyle(
+                            fontSize: isDesktopScreen ? 14 : 16,
+                            color: theme.darkTextColor),
                       )),
+                      Icon(Icons.keyboard_arrow_right,
+                          color: theme.weakTextColor)
+                    ],
+                  )),
               ],
             ),
             if (isDesktopScreen)

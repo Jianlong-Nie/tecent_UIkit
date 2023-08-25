@@ -61,10 +61,12 @@ class TIMUIKitGroupProfile extends StatefulWidget {
       {Key? key,
       required this.groupID,
       this.backGroundColor,
-      @Deprecated("[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
-          this.bottomOperationBuilder,
-      @Deprecated("[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
-          this.operationListBuilder,
+      @Deprecated(
+          "[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
+      this.bottomOperationBuilder,
+      @Deprecated(
+          "[operationListBuilder] and [bottomOperationBuilder] merged into [builder], please use it instead")
+      this.operationListBuilder,
       this.builder,
       this.profileWidgetBuilder,
       this.onClickUser,
@@ -187,8 +189,12 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                 context,
                 MaterialPageRoute(
                     builder: (context) => GroupProfileNotificationPage(
-                        model: model,
-                        notification: groupInfo.notification ?? "")));
+                        callback: (String notification) async {
+                          await model.setGroupNotification(notification);
+                          Navigator.of(context).pop();
+                        },
+                        title: TIM_t("群公告"),
+                        content: groupInfo.notification ?? "")));
           }
 
           void toDefaultManagePage() {
@@ -224,6 +230,18 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                           toDefaultNoticePage,
                           model.setGroupNotification)
                       : TIMUIKitGroupProfileWidget.groupNotification(
+                         
+                         
+                         
+                         
+                         
+                         
+                         
+                          groupInfo: groupInfo,
+                          callback: (String notification) async {
+                            await model.setGroupNotification(notification);
+                            Navigator.of(context).pop();
+                          },
                           isHavePermission: isAdmin || isGroupOwner))!;
                 case GroupProfileWidgetEnum.groupManage:
                   if (isAdmin || isGroupOwner) {
@@ -241,10 +259,14 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                   return (customBuilder?.operationDivider != null
                       ? customBuilder?.operationDivider!()
                       : TIMUIKitGroupProfileWidget.operationDivider(theme))!;
-                case GroupProfileWidgetEnum.groupTypeBar:
-                  return (customBuilder?.groupTypeBar != null
-                      ? customBuilder?.groupTypeBar!(groupInfo.groupType)
-                      : TIMUIKitGroupProfileWidget.groupType())!;
+                // case GroupProfileWidgetEnum.groupTypeBar:
+                //   return (customBuilder?.groupTypeBar != null
+                //       ? customBuilder?.groupTypeBar!(groupInfo.groupType)
+                //       : TIMUIKitGroupProfileWidget.groupType())!;
+                // case GroupProfileWidgetEnum.groupTypeBar:
+                //   return (customBuilder?.groupTypeBar != null
+                //       ? customBuilder?.groupTypeBar!(groupInfo.groupType)
+                //       : TIMUIKitGroupProfileWidget.groupType())!;
                 case GroupProfileWidgetEnum.groupJoiningModeBar:
                   final String groupType = groupInfo.groupType;
                   if (!(isGroupOwner || isAdmin) ||

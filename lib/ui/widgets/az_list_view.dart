@@ -12,11 +12,17 @@ class AZListViewContainer extends StatefulWidget {
   final Widget Function(BuildContext context, int index) itemBuilder;
   final Widget Function(BuildContext context, int index)? susItemBuilder;
   final bool isShowIndexBar;
+  final bool? needExpandList;
+  final bool? showGroup;
+  final bool? showContacts;
 
   const AZListViewContainer(
       {Key? key,
       required this.memberList,
       required this.itemBuilder,
+      this.needExpandList = false,
+      this.showGroup = true,
+      this.showContacts = true,
       this.isShowIndexBar = true,
       this.susItemBuilder})
       : super(key: key);
@@ -87,6 +93,7 @@ class _AZListViewContainerState extends TIMUIKitState<AZListViewContainer> {
                     data: _list!,
                     itemCount: _list!.length,
                     itemBuilder: widget.itemBuilder,
+                    
                     indexBarData: (!isDesktopScreen && widget.isShowIndexBar)
                         ? SuspensionUtil.getTagIndexList(_list!)
                             .where((element) => element != "@")

@@ -111,11 +111,13 @@ class GroupProfileGroupManagePage extends StatefulWidget {
 class _GroupProfileGroupManagePageState
     extends TIMUIKitState<GroupProfileGroupManagePage> {
   int? serverTime;
+  Map<String, String>? groupAttributes;
 
   @override
   void initState() {
     super.initState();
     getServerTime();
+    // getAttributes();
   }
 
   void getServerTime() async {
@@ -124,6 +126,13 @@ class _GroupProfileGroupManagePageState
       serverTime = res.data;
     });
   }
+
+  // Future<void> getAttributes() async {
+  //   widget.model.groupInfo?.customInfo?.forEach((key, value) {
+  //     print(key);
+  //     print(value);
+  //   });
+  // }
 
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
@@ -137,9 +146,21 @@ class _GroupProfileGroupManagePageState
           final memberList =
               Provider.of<TUIGroupProfileModel>(context).groupMemberList;
           final theme = Provider.of<TUIThemeViewModel>(context).theme;
-          final isAllMuted = widget.model.groupInfo?.isAllMuted ?? false;
+          final groupInfo = widget.model.groupInfo;
+          final isAllMuted = groupInfo?.isAllMuted ?? false;
+          final isAllowFriendsTemp = groupInfo?.customInfo?["allowAddFriends"];
+          final groupRedirectedTemp = groupInfo?.customInfo?["groupRedirected"];
+          var isAllowFriends = isAllowFriendsTemp;
+          var groupRedirected = groupRedirectedTemp;
+          if (isAllowFriendsTemp == null) {
+            isAllowFriends = "0";
+          }
+          if (groupRedirectedTemp == null) {
+            groupRedirected = "0";
+          }
+          print(groupInfo?.customInfo);
           final bool isAllowMuteMember =
-              (widget.model.groupInfo?.groupType ?? "") != GroupType.Work;
+              (groupInfo?.groupType ?? "") != GroupType.Work;
           final isDesktopScreen =
               TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
 
@@ -194,6 +215,94 @@ class _GroupProfileGroupManagePageState
                                   color: theme.weakTextColor)
                             ],
                           ),
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(
+                      top: 12, left: 16, bottom: 12, right: 12),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                          bottom: BorderSide(
+                              color: theme.weakDividerColor ??
+                                  CommonColor.weakDividerColor))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        children: [
+                          Text(
+                            "Members Invisible",
+                            style: TextStyle(
+                                fontSize: 16, color: theme.darkTextColor),
+                          ),
+                        ],
+                      ),
+                      CupertinoSwitch(
+                          value: isAllowFriends == "1",
+                          onChanged: (value) async {
+                            final customInfo = groupInfo?.customInfo;
+                            customInfo?["allowAddFriends"] = value ? "1" : "0";
+                            V2TimGroupInfo infos = V2TimGroupInfo.fromJson({
+                              "groupID": groupInfo?.groupID,
+                              "customInfo": customInfo,
+                              "groupType": groupInfo?.groupType,
+                              // ...其他资料
+                            });
+                            await TencentImSDKPlugin.v2TIMManager
+                                .getGroupManager()
+                                .setGroupInfo(info: infos);
+                          },
+                          activeColor: theme.primaryColor)
+                    ],
+                  ),
+                ),
+                Container(
+                  padding: const EdgeInsets.only(
+                      top: 12, left: 16, bottom: 12, right: 12),
+                  decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                          bottom: BorderSide(
+                              color: theme.weakDividerColor ??
+                                  CommonColor.weakDividerColor))),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Container(
+                          width: MediaQuery.of(context).size.width - 120,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Redirect Messages",
+                                style: TextStyle(
+                                    fontSize: 16, color: theme.darkTextColor),
+                              ),
+                              Text(
+                                "If message redirection is enabled, only administrators can see the messages sent by ordinary members",
+                                style:
+                                    TextStyle(fontSize: 12, color: Colors.grey),
+                              ),
+                            ],
+                          )),
+                      CupertinoSwitch(
+                          value: groupRedirected == "1",
+                          onChanged: (value) async {
+                            final customInfo = groupInfo?.customInfo;
+                            customInfo?["groupRedirected"] = value ? "1" : "0";
+                            V2TimGroupInfo infos = V2TimGroupInfo.fromJson({
+                              "groupID": groupInfo?.groupID,
+                              "customInfo": customInfo,
+                              "groupType": groupInfo?.groupType,
+                              // ...其他资料
+                            });
+                            await TencentImSDKPlugin.v2TIMManager
+                                .getGroupManager()
+                                .setGroupInfo(info: infos);
+                          },
+                          activeColor: theme.primaryColor)
+                    ],
                   ),
                 ),
                 if (isDesktopScreen)

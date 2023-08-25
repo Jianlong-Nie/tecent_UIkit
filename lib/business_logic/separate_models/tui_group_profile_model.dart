@@ -9,6 +9,8 @@ import 'package:tencent_cloud_chat_uikit/data_services/friendShip/friendship_ser
 import 'package:tencent_cloud_chat_uikit/data_services/group/group_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
+import 'package:QVChat/src/services/chatApp.dart';
+import 'package:get/get.dart';
 
 class TUIGroupProfileModel extends ChangeNotifier {
   final CoreServicesImpl _coreServices = serviceLocator<CoreServicesImpl>();
@@ -18,6 +20,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
   final MessageService _messageService = serviceLocator<MessageService>();
   final FriendshipServices _friendshipServices =
       serviceLocator<FriendshipServices>();
+  ChatAppController _chatAppController = Get.put(ChatAppController());
   GroupProfileLifeCycle? _lifeCycle;
 
   V2TimConversation? _conversation;
@@ -172,6 +175,46 @@ class TUIGroupProfileModel extends ChangeNotifier {
       if (response.code != 0) {
         _groupInfo?.groupName = originalGroupName;
       }
+      _chatAppController.changeGroupName(_groupID, groupName);
+      notifyListeners();
+      return response;
+    }
+    return null;
+  }
+
+  Future<V2TimCallback?> setGrouIntro(String groupIntro) async {
+    if (_groupInfo != null) {
+      String? originalGroupName = _groupInfo?.introduction;
+      _groupInfo?.introduction = groupIntro;
+      final response = await _groupServices.setGroupInfo(
+          info: V2TimGroupInfo.fromJson({
+        "groupID": _groupID,
+        "groupType": _groupInfo!.groupType,
+        "introduction": groupIntro
+      }));
+      if (response.code != 0) {
+        _groupInfo?.introduction = originalGroupName;
+      }
+      notifyListeners();
+      return response;
+    }
+    return null;
+  }
+
+  Future<V2TimCallback?> setGroupFaceUrl(String faceUrl) async {
+    if (_groupInfo != null) {
+      String? originalFaceurl = _groupInfo?.faceUrl;
+      _groupInfo?.faceUrl = faceUrl;
+      final response = await _groupServices.setGroupInfo(
+          info: V2TimGroupInfo.fromJson({
+        "groupID": _groupID,
+        "groupType": _groupInfo!.groupType,
+        "faceUrl": faceUrl
+      }));
+      if (response.code != 0) {
+        _groupInfo?.faceUrl = originalFaceurl;
+      }
+      // _chatAppController.changeGroupName(_groupID, groupName);
       notifyListeners();
       return response;
     }
@@ -285,7 +328,7 @@ class TUIGroupProfileModel extends ChangeNotifier {
 
   bool canInviteMember() {
     final groupType = _groupInfo?.groupType;
-    return groupType == GroupType.Work;
+    return groupType == GroupType.Work || groupType == GroupType.Public;
   }
 
   bool canKickOffMember() {

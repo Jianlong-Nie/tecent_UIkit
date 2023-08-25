@@ -17,9 +17,11 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/tencent_cloud_chat_uikit.dart';
 
 class VideoCustomControls extends StatefulWidget {
-  const VideoCustomControls({required this.downloadFn, Key? key})
+  const VideoCustomControls(
+      {required this.downloadFn, required this.shareFn, Key? key})
       : super(key: key);
   final Future<void> Function() downloadFn;
+  final Future<void> Function() shareFn;
 
   @override
   State<StatefulWidget> createState() {
@@ -168,13 +170,43 @@ class _VideoCustomControlsState extends TIMUIKitState<VideoCustomControls>
                   isLoading = true;
                 });
                 await widget.downloadFn();
-                Future.delayed(const Duration(milliseconds: 200),(){
+                Future.delayed(const Duration(milliseconds: 200), () {
                   setState(() {
                     isLoading = false;
                   });
                 });
               },
-            )
+            ),
+            Positioned(
+              right: 10,
+              bottom: 57,
+              child: ClipOval(
+                  child: GestureDetector(
+                onTap: () async {
+                  setState(() {
+                    isLoading = true;
+                  });
+                  await widget.shareFn();
+                  Future.delayed(const Duration(milliseconds: 200), () {
+                    setState(() {
+                      isLoading = false;
+                    });
+                  });
+                },
+                child: Container(
+                  width: 33,
+                  height: 33,
+                  color: Color(0xFF4D4D4D),
+                  child: Center(
+                    child: Icon(
+                      Icons.ios_share,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                  ),
+                ),
+              )),
+            ),
           ],
         ),
       ),

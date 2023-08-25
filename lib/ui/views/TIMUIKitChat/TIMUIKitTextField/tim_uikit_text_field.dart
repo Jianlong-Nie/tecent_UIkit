@@ -753,9 +753,19 @@ class _InputTextFieldState extends TIMUIKitState<TIMUIKitInputTextField> {
       if ((model.groupInfo?.isAllMuted ?? false) &&
           muteStatus != MuteStatus.all) {
         Future.delayed(const Duration(seconds: 0), () {
-          setState(() {
-            muteStatus = MuteStatus.all;
-          });
+          final isGroupOwner = model.groupInfo?.role ==
+              GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_OWNER;
+          final isAdmin = model.groupInfo?.role ==
+              GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN;
+          if (isGroupOwner || isAdmin) {
+          } else {
+            setState(() {
+              muteStatus = MuteStatus.all;
+            });
+          }
+          // setState(() {
+          //   muteStatus = MuteStatus.all;
+          // });
         });
       } else if (selfModel.loginInfo?.userID != null &&
           await getMemberMuteStatus(selfModel.loginInfo!.userID!) &&

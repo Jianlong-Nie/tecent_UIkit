@@ -14,6 +14,8 @@ import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitAddFriend/tim_uikit_send_application.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
+import 'package:QVChat/src/services/chatApp.dart';
+import 'package:get/get.dart';
 
 class TIMUIKitAddFriend extends StatefulWidget {
   final bool? isShowDefaultGroup;
@@ -46,6 +48,7 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
       serviceLocator<FriendshipServices>();
   final TUISelfInfoViewModel _selfInfoViewModel =
       serviceLocator<TUISelfInfoViewModel>();
+  final ChatAppController _chatAppController = Get.put(ChatAppController());
   final FocusNode _focusNode = FocusNode();
   bool isFocused = false;
   bool showResult = false;
@@ -180,8 +183,16 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
   }
 
   searchFriend(String params) async {
-    final response = await _coreServicesImpl.getUsersInfo(userIDList: [params]);
-    if (response.code == 0) {
+    // final response = await _coreServicesImpl.getUsersInfo(userIDList: [params]);
+    //   Future<V2TimValueCallback<List<V2TimUserFullInfo>>> getUsersInfo({
+    //   required List<String> userIDList,
+    // }) {
+    //   return TencentImSDKPlugin.v2TIMManager.getUsersInfo(userIDList: userIDList);
+    // }
+    final response1 = await _chatAppController.seachFriends(params);
+    if (response1 != null) {
+      final response = await _coreServicesImpl
+          .getUsersInfo(userIDList: [response1["id"]!.toString()]);
       setState(() {
         searchResult = response.data;
       });
@@ -246,8 +257,13 @@ class _TIMUIKitAddFriendState extends TIMUIKitState<TIMUIKitAddFriend> {
                         ),
                         fillColor: theme.inputFillColor,
                         filled: true,
-                        hintText: TIM_t("搜索用户 ID")),
+                        hintText: "Search by user ID、email、phone number"),
                   )),
+                  TextButton(
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                      child: Text("Cancel"))
                 ],
               ),
             ),

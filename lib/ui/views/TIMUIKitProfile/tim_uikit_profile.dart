@@ -11,9 +11,12 @@ import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/profile_widget.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_profile_widget.dart';
+import 'package:QVChat/src/business_info.dart';
+import 'package:QVChat/src/personnal_info.dart';
+import 'package:QVChat/src/common_groups.dart';
+import 'package:QVChat/src/share_contact.dart';
 
 typedef OnSelfAvatarTap = void Function();
-
 typedef ProfileBuilder = Widget Function(
     BuildContext context,
     V2TimFriendInfo userInfo,
@@ -341,20 +344,22 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           TIMUIKitProfileWidget.defaultPortraitWidget(
                               userInfo.userProfile, widget.smallCardMode),
                           widget.smallCardMode))!;
-                case ProfileWidgetEnum.nicknameBar:
-                  return (customBuilder?.nicknameBar != null
-                      ? customBuilder
-                          ?.nicknameBar!(userInfo.userProfile?.nickName ?? "")
-                      : TIMUIKitProfileWidget.nicknameBar(
-                          userInfo.userProfile?.nickName ?? "",
-                          widget.smallCardMode))!;
-                case ProfileWidgetEnum.userAccountBar:
-                  return (customBuilder?.userAccountBar != null
-                      ? customBuilder
-                          ?.userAccountBar!(userInfo.userProfile?.userID ?? "")
-                      : TIMUIKitProfileWidget.userAccountBar(
-                          userInfo.userProfile?.userID ?? "",
-                          widget.smallCardMode))!;
+                // case ProfileWidgetEnum.nicknameBar:
+                //   return (customBuilder?.nicknameBar != null
+                //       ? customBuilder
+                //           ?.nicknameBar!(userInfo.userProfile?.nickName ?? "")
+                //       : TIMUIKitProfileWidget.nicknameBar(
+                //           userInfo.userProfile?.nickName ?? "",
+                //           widget.smallCardMode))!;
+                // case ProfileWidgetEnum.userAccountBar:
+                //   return (customBuilder?.userAccountBar != null
+                //       ? customBuilder
+                //           ?.userAccountBar!(userInfo.userProfile?.userID ?? "")
+                //       : TIMUIKitProfileWidget.userAccountBar(
+                //           userInfo.userProfile?.userID ?? "",
+                //           widget.smallCardMode))!;
+                // case ProfileWidgetEnum.userAccountBar:
+                //   return PersonnalInfos(userProfile: userInfo.userProfile);
                 case ProfileWidgetEnum.signatureBar:
                   return (customBuilder?.signatureBar != null
                       ? customBuilder?.signatureBar!(
@@ -363,19 +368,58 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
                           userInfo.userProfile?.selfSignature ?? "",
                           widget.smallCardMode))!;
                 case ProfileWidgetEnum.genderBar:
-                  return (customBuilder?.genderBar != null
-                      ? customBuilder
-                          ?.genderBar!(userInfo.userProfile?.gender ?? 0)
-                      : TIMUIKitProfileWidget.genderBar(
-                          userInfo.userProfile?.gender ?? 0,
-                          widget.smallCardMode))!;
-                case ProfileWidgetEnum.birthdayBar:
-                  return (customBuilder?.birthdayBar != null
-                      ? customBuilder
-                          ?.birthdayBar!(userInfo.userProfile?.birthday)
-                      : TIMUIKitProfileWidget.birthdayBar(
-                          userInfo.userProfile?.birthday,
-                          widget.smallCardMode))!;
+                  if (!isFriend)
+                    return Container(
+                      height: 0,
+                    );
+                  return Column(children: [
+                    Container(
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                  builder: (context) => ShareContact(
+                                      userProfile: userInfo.userProfile)));
+                        },
+                        child: TIMUIKitOperationItem(
+                          isEmpty: false,
+                          operationName: "Share contact",
+                          showAllowEditStatus: true,
+                          operationRightWidget: Text(
+                            "",
+                            textAlign: TextAlign.end,
+                          ),
+                        ),
+                      ),
+                    ),
+                    PersonnalInfos(
+                        userProfile: userInfo.userProfile,
+                        isFriend: value.friendType != 0),
+                    BusinessInfos(userProfile: userInfo.userProfile),
+                    if (!isSelf)
+                      Column(
+                        children: [
+                          TIMUIKitProfileWidget.operationDivider(
+                              color: theme.weakDividerColor,
+                              height: isDesktopScreen ? 1 : 10,
+                              margin: isDesktopScreen
+                                  ? EdgeInsets.symmetric(
+                                      vertical: widget.smallCardMode ? 4 : 20)
+                                  : null),
+                          CommonGroups(
+                            userProfile: userInfo.userProfile,
+                          )
+                        ],
+                      )
+                  ]);
+                // case ProfileWidgetEnum.birthdayBar:
+                //   return (customBuilder?.birthdayBar != null
+                //       ? customBuilder
+                //           ?.birthdayBar!(userInfo.userProfile?.birthday)
+                //       : TIMUIKitProfileWidget.birthdayBar(
+                //           userInfo.userProfile?.birthday,
+                //           widget.smallCardMode))!;
                 case ProfileWidgetEnum.addAndDeleteArea:
                   if (isSelf) {
                     return Container();
@@ -474,14 +518,22 @@ class _TIMUIKitProfileState extends TIMUIKitState<TIMUIKitProfile> {
             return profilePage(
               child: Column(
                 children: [
-                  ..._renderWidgetsWithOrder(widget.profileWidgetsOrder!)
+                  ..._renderWidgetsWithOrder(widget.profileWidgetsOrder!),
+                  Container(
+                    height: 50,
+                  )
                 ],
               ),
             );
           } else {
             return profilePage(
                 child: Column(
-              children: [..._renderWidgetsWithOrder(_defaultWidgetOrder)],
+              children: [
+                ..._renderWidgetsWithOrder(_defaultWidgetOrder),
+                Container(
+                  height: 50,
+                )
+              ],
             ));
           }
         },

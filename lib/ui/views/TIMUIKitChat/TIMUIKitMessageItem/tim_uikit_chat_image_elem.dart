@@ -8,6 +8,7 @@ import 'package:http/http.dart' as http;
 import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_chat_separate_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/message/message_services.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/tim_uikit_medias_preview.dart';
 import 'package:tencent_open_file/tencent_open_file.dart';
 import 'package:universal_html/html.dart' as html;
 import 'dart:io';
@@ -32,6 +33,7 @@ import 'package:tencent_cloud_chat_uikit/ui/widgets/image_screen.dart';
 import 'package:transparent_image/transparent_image.dart';
 import 'package:image_gallery_saver/image_gallery_saver.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_swiper_plus/flutter_swiper_plus.dart';
 
 class TIMUIKitImageElem extends StatefulWidget {
   final V2TimMessage message;
@@ -208,6 +210,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
           return;
         }
       } else {
+        print("到此一游");
         onTIMCallback(TIMCallback(
             type: TIMCallbackType.INFO,
             infoRecommendText: TIM_t("the message is downloading"),
@@ -318,7 +321,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
           TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
       String bigImgUrl = originalImg?.url ?? getBigPicUrl();
       if (bigImgUrl.isEmpty && smallImg?.url != null) {
-        bigImgUrl = smallImg!.url!;
+        bigImgUrl = smallImg?.url ?? "";
       }
       return Stack(
         alignment: widget.message.isSelf ?? true
@@ -348,7 +351,7 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
                         launchUrl(Uri.file(widget
                             .message.imageElem!.imageList![0]!.localUrl!));
                       }
-                    }else{
+                    } else {
                       onTIMCallback(TIMCallback(
                           infoCode: 6660414,
                           infoRecommendText: TIM_t("正在下载中"),
@@ -358,16 +361,10 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
                     Navigator.of(context).push(
                       PageRouteBuilder(
                           opaque: false, // set to false
-                          pageBuilder: (_, __, ___) => ImageScreen(
-                              imageProvider: CachedNetworkImageProvider(
-                                path ?? bigImgUrl,
-                                cacheKey: widget.message.msgID,
-                              ),
-                              heroTag: heroTag,
-                              messageID: widget.message.msgID,
-                              downloadFn: () async {
-                                return await _saveImg(theme!);
-                              })),
+                          pageBuilder: (_, __, ___) => TIMUIKitMediaPreview(
+                                message: widget.message,
+                                conId: widget.chatModel.conversationID,
+                              )),
                     );
                   }
                 },
@@ -406,6 +403,23 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
     }
   }
 
+  List<V2TimMessage> filterMessages(List<V2TimMessage>? messageList) {
+    List<V2TimMessage> filteredMessages = [];
+
+    if (messageList == null) {
+      return filteredMessages;
+    }
+
+    for (V2TimMessage message in messageList) {
+      if (message.elemType == MessageElemType.V2TIM_ELEM_TYPE_IMAGE ||
+          message.elemType == MessageElemType.V2TIM_ELEM_TYPE_VIDEO) {
+        filteredMessages.add(message);
+      }
+    }
+
+    return filteredMessages;
+  }
+
   Widget _renderLocalImage(String smallImage, dynamic heroTag,
       double? positionRadio, TUITheme? theme, String? originImage) {
     double? currentPositionRadio = positionRadio;
@@ -435,7 +449,11 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
 
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
-
+    // final convID = TencentUtils.checkString(widget.message.userID) ??
+    //     widget.message.groupID;
+    final convID = widget.chatModel.conversationID;
+    final messageList = globalModel.messageListMap[convID] ?? [];
+    List<V2TimMessage> filteredMessages = filterMessages(messageList);
     return Stack(
       alignment: AlignmentDirectional.topStart,
       children: [
@@ -456,18 +474,29 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
                       launchUrl(Uri.file(showImage));
                     }
                   } else {
+                    print("在这里打印" + (convID ?? ""));
+                    print(showImage);
+                    print(message.msgID);
+                    print(preloadImage);
+                    // if (message.msgID != null) {
                     Navigator.of(context).push(
                       PageRouteBuilder(
-                        opaque: false, // set to false
-                        pageBuilder: (_, __, ___) => ImageScreen(
-                            imageProvider: FileImage(File(showImage)),
-                            heroTag: heroTag,
-                            messageID: widget.message.msgID,
-                            downloadFn: () async {
-                              return await _saveImg(theme!);
-                            }),
-                      ),
+                          opaque: false, // set to false
+                          pageBuilder: (_, __, ___) => TIMUIKitMediaPreview(
+                                message: message,
+                                conId: convID ?? "",
+                              )),
                     );
+                    // } else {
+                    //   Future.delayed(const Duration(milliseconds: 600), () {
+                    //     Navigator.of(context).push(
+                    //       PageRouteBuilder(
+                    //           opaque: false, // set to false
+                    //           pageBuilder: (_, __, ___) =>
+                    //               TIMUIKitMediaPreview(message: message)),
+                    //     );
+                    //   });
+                    // }
                   }
                 },
                 child: Container(

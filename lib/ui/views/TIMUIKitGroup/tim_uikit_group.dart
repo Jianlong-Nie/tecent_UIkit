@@ -22,6 +22,7 @@ class TIMUIKitGroup extends StatefulWidget {
       onTapItem;
   final Widget Function(BuildContext context)? emptyBuilder;
   final GroupItemBuilder? itemBuilder;
+  final bool? needAz;
 
   /// the filter for group conversation
   final bool Function(V2TimGroupInfo? groupInfo)? groupCollector;
@@ -30,6 +31,7 @@ class TIMUIKitGroup extends StatefulWidget {
       {Key? key,
       this.onTapItem,
       this.emptyBuilder,
+      this.needAz = true,
       this.itemBuilder,
       this.groupCollector})
       : super(key: key);
@@ -125,7 +127,8 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
                   child: Text(
                     showName,
                     style: TextStyle(
-                        color: Colors.black, fontSize: isDesktopScreen ? 14 : 18),
+                        color: Colors.black,
+                        fontSize: isDesktopScreen ? 14 : 18),
                   ),
                 ))
               ],
@@ -178,6 +181,15 @@ class _TIMUIKitGroupState extends TIMUIKitState<TIMUIKitGroup> {
         }
         if (groupList.isNotEmpty) {
           final showList = _getShowList(groupList);
+          if (!widget.needAz!) {
+            return Column(
+              children: List.generate(showList.length, (index) {
+                final groupInfo = showList[index].memberInfo;
+                final itemBuilder = _getItemBuilder();
+                return itemBuilder(context, groupInfo);
+              }),
+            );
+          }
           return AZListViewContainer(
               isShowIndexBar: false,
               memberList: showList,

@@ -7,41 +7,41 @@ import 'package:tencent_cloud_chat_uikit/business_logic/separate_models/tui_grou
 
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
 
-class GroupProfileNotification extends StatefulWidget {
+class ProfileItem extends StatefulWidget {
   final bool isHavePermission;
-
-  const GroupProfileNotification({Key? key, this.isHavePermission = false})
+  final String title;
+  final String? content;
+  final Function(String) callback; // Add this line
+  const ProfileItem(
+      {Key? key,
+      this.isHavePermission = false,
+      required this.title,
+      required this.callback,
+      this.content})
       : super(key: key);
 
   @override
-  State<StatefulWidget> createState() => GroupProfileNotificationState();
+  State<StatefulWidget> createState() => ProfileItemState();
 }
 
-class GroupProfileNotificationState
-    extends TIMUIKitState<GroupProfileNotification> {
+class ProfileItemState extends TIMUIKitState<ProfileItem> {
   bool isShowEditBox = false;
   final TextEditingController _controller = TextEditingController();
-
 
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final TUITheme theme = value.theme;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final String notification = widget.content ?? "";
 
-    final model = Provider.of<TUIGroupProfileModel>(context);
-    final String notification = (model.groupInfo?.notification != null &&
-            model.groupInfo!.notification!.isNotEmpty)
-        ? model.groupInfo!.notification!
-        : TIM_t("暂无群公告");
-
-    _setGroupNotification() async {
-      setState(() {
-        isShowEditBox = false;
-      });
-      final notification = _controller.text;
-      await model.setGroupNotification(notification);
-    }
+    // _setGroupNotification() async {
+    //   setState(() {
+    //     isShowEditBox = false;
+    //   });
+    //   final notification = _controller.text;
+    //   await model.setGroupNotification(notification);
+    // }
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
@@ -58,13 +58,16 @@ class GroupProfileNotificationState
             ? null
             : (() {
                 final isDesktopScreen =
-                    TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+                    TUIKitScreenUtils.getFormFactor(context) ==
+                        DeviceType.Desktop;
                 if (!isDesktopScreen) {
                   Navigator.push(
                       context,
                       MaterialPageRoute(
                           builder: (context) => GroupProfileNotificationPage(
-                              model: model, notification: notification)));
+                              callback: widget.callback,
+                              content: notification,
+                              title: widget.title)));
                 } else {
                   setState(() {
                     isShowEditBox = !isShowEditBox;
@@ -83,7 +86,8 @@ class GroupProfileNotificationState
               children: [
                 Expanded(
                   child: Text(
-                    TIM_t("群公告"),
+                    widget.title,
+                    // TIM_t("群公告"),
                     style: TextStyle(
                         color: theme.darkTextColor,
                         fontSize: isDesktopScreen ? 14 : 16),
@@ -148,7 +152,9 @@ class GroupProfileNotificationState
                 mainAxisAlignment: MainAxisAlignment.end,
                 children: [
                   OutlinedButton(
-                      onPressed: _setGroupNotification,
+                      onPressed: () {
+                        widget.callback(_controller.text);
+                      },
                       child: Text(
                         TIM_t("保存"),
                         style:
@@ -164,11 +170,15 @@ class GroupProfileNotificationState
 }
 
 class GroupProfileNotificationPage extends StatefulWidget {
-  final String notification;
-  final TUIGroupProfileModel model;
+  final String content;
+  final String title;
+  final Function(String) callback; // Add this line
 
   const GroupProfileNotificationPage(
-      {Key? key, required this.notification, required this.model})
+      {Key? key,
+      required this.content,
+      required this.title,
+      required this.callback})
       : super(key: key);
 
   @override
@@ -180,17 +190,9 @@ class _GroupProfileNotificationPageState
   final TextEditingController _controller = TextEditingController();
   bool isUpdated = false;
 
-  _setGroupNotification() async {
-    final notification = _controller.text;
-    await widget.model.setGroupNotification(notification);
-    setState(() {
-      isUpdated = true;
-    });
-  }
-
   @override
   void initState() {
-    _controller.text = widget.notification;
+    _controller.text = widget.content;
     super.initState();
   }
 
@@ -201,11 +203,10 @@ class _GroupProfileNotificationPageState
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          TIM_t("群公告"),
+          widget.title,
           style: TextStyle(color: theme.appbarTextColor, fontSize: 17),
         ),
-        backgroundColor: theme.appbarBgColor ??
-            theme.primaryColor,
+        backgroundColor: theme.appbarBgColor ?? theme.primaryColor,
         shadowColor: theme.weakDividerColor,
         iconTheme: IconThemeData(
           color: theme.appbarTextColor,
@@ -218,7 +219,8 @@ class _GroupProfileNotificationPageState
                   isUpdated = false;
                 });
               } else {
-                _setGroupNotification();
+                widget.callback(_controller.text);
+                // _setGroupNotification();
               }
             },
             child: Text(

@@ -81,6 +81,16 @@ class MessageUtils {
         break;
       case GroupChangeInfoType.V2TIM_GROUP_INFO_CHANGE_TYPE_SHUT_UP_ALL:
         s = TIM_t("全员禁言状态");
+        // final String option8 = s;
+        // var value = info.boolValue;
+        // if (value != null) {
+        //   return TIM_t_para("{{option8}}为 ", "$option8为 ")(option8: option8) +
+        //           value
+        //       ? "opened"
+        //       : "closed";
+        // } else {
+        //   return option8;
+        // }
         break;
       case GroupChangeInfoType.V2TIM_GROUP_INFO_CHANGE_TYPE_RECEIVE_MESSAGE_OPT:
         s = TIM_t("消息接收方式");
@@ -100,7 +110,7 @@ class MessageUtils {
   }
 
   static String? _getOpUserNick(V2TimGroupMemberInfo? opUser) {
-    if(opUser == null){
+    if (opUser == null) {
       return "";
     }
     return TencentUtils.checkString(opUser.friendRemark) ??
@@ -138,17 +148,26 @@ class MessageUtils {
         final String? option7 = opUserNickName ?? "";
         final groupChangeInfoList = groupTipsElem.groupChangeInfoList ?? [];
         String changedInfoString = "";
+        String statusString = "opened";
         for (V2TimGroupChangeInfo? element in groupChangeInfoList) {
           final newText = await _getGroupChangeType(element!, groupMemberList);
           changedInfoString +=
               (changedInfoString.isEmpty ? "" : " / ") + newText;
+          if (changedInfoString == 'All Mute Status') {
+            statusString = element.boolValue! ? "opened" : "closed";
+          }
         }
         if (changedInfoString.isEmpty) {
           changedInfoString = TIM_t("群资料");
         }
-        displayMessage =
-            TIM_t_para("{{option7}}修改", "$option7修改")(option7: option7) +
-                changedInfoString;
+        if (changedInfoString == 'All Mute Status') {
+          displayMessage =
+              option7! + " switched All Mute Status to " + statusString + ".";
+        } else {
+          displayMessage =
+              TIM_t_para("{{option7}}修改", "$option7修改")(option7: option7) +
+                  changedInfoString;
+        }
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_QUIT:
         final String? option6 = opUserNickName ?? "";
@@ -157,21 +176,21 @@ class MessageUtils {
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_INVITE:
         final option5 =
-        memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
+            memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
         final inviteUser = _getOpUserNick(operationMember);
         displayMessage = '$inviteUser' +
             TIM_t_para("邀请{{option5}}加入群组", "邀请$option5加入群组")(option5: option5);
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_KICKED:
         final option4 =
-        memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
+            memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
         final kickUser = _getOpUserNick(operationMember);
         displayMessage = '$kickUser' +
             TIM_t_para("将{{option4}}踢出群组", "将$option4踢出群组")(option4: option4);
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_JOIN:
         final option3 =
-        memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
+            memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
         displayMessage = TIM_t_para("用户{{option3}}加入了群聊", "用户$option3加入了群聊")(
             option3: option3);
         break;
@@ -188,7 +207,7 @@ class MessageUtils {
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_SET_ADMIN:
         final adminMember =
-        memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
+            memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
         final opMember = _getOpUserNick(operationMember);
         final option1 = adminMember;
         displayMessage = '$opMember' +
@@ -197,7 +216,7 @@ class MessageUtils {
         break;
       case GroupTipsElemType.V2TIM_GROUP_TIPS_TYPE_CANCEL_ADMIN:
         final adminMember =
-        memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
+            memberList!.map((e) => _getMemberNickName(e!).toString()).join("、");
         final opMember = _getOpUserNick(operationMember);
         final option1 = adminMember;
         displayMessage = '$opMember' +
@@ -247,8 +266,8 @@ class MessageUtils {
         margin: const EdgeInsets.symmetric(vertical: 10), child: child);
   }
 
-  static String getAbstractMessageAsync(V2TimMessage message,
-      List<V2TimGroupMemberFullInfo?> groupMemberList) {
+  static String getAbstractMessageAsync(
+      V2TimMessage message, List<V2TimGroupMemberFullInfo?> groupMemberList) {
     final msgType = message.elemType;
     switch (msgType) {
       case MessageElemType.V2TIM_ELEM_TYPE_CUSTOM:
@@ -284,8 +303,8 @@ class MessageUtils {
     try {
       for (String type in order) {
         img = list?.firstWhere(
-                (e) =>
-            e?.type == HistoryMessageDartConstant.V2_TIM_IMAGE_TYPES[type],
+            (e) =>
+                e?.type == HistoryMessageDartConstant.V2_TIM_IMAGE_TYPES[type],
             orElse: () => null);
       }
     } catch (e) {
@@ -302,10 +321,10 @@ class MessageUtils {
     final displayName = friendRemark.isNotEmpty
         ? friendRemark
         : nameCard.isNotEmpty
-        ? nameCard
-        : nickName.isNotEmpty
-        ? nickName
-        : sender;
+            ? nameCard
+            : nickName.isNotEmpty
+                ? nickName
+                : sender;
     return displayName.toString();
   }
 

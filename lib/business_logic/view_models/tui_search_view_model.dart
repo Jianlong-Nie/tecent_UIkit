@@ -53,6 +53,15 @@ class TUISearchViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
+  void initSearchWithData(
+      List<V2TimGroupInfo>? groups, List<V2TimFriendInfoResult>? friends) {
+    friendList = friends;
+    msgList = [];
+    groupList = groups;
+    totalMsgCount = 0;
+    notifyListeners();
+  }
+
   void searchFriendByKey(String searchKey) async {
     final searchResult = await _friendshipServices.searchFriends(
         searchParam: V2TimFriendSearchParam(keywordList: [searchKey]));
@@ -92,9 +101,9 @@ class TUISearchViewModel extends ChangeNotifier {
       type: KeywordListMatchType.V2TIM_KEYWORD_LIST_MATCH_TYPE_OR.index,
     ));
     if (searchResult.code == 0 && searchResult.data != null) {
-      final messageSearchResultItems = searchResult
-          .data!.messageSearchResultItems!
-          .firstWhereOrNull((element) => element.conversationID == conversationId);
+      final messageSearchResultItems =
+          searchResult.data!.messageSearchResultItems!.firstWhereOrNull(
+              (element) => element.conversationID == conversationId);
       totalMsgInConversationCount = messageSearchResultItems?.messageCount ?? 0;
       currentMsgListForConversation = [
         ...currentMsgListForConversation,

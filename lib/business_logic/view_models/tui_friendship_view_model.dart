@@ -68,6 +68,7 @@ class TUIFriendShipViewModel extends ChangeNotifier {
       onFriendApplicationListAdded: (applicationList) {
         loadContactApplicationData();
       },
+      
       onFriendApplicationListDeleted: (userIDList) {
         loadContactApplicationData();
       },

@@ -58,6 +58,7 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
   V2TimGroupInfo? _groupInfo;
   String groupMemberListSeq = "0";
   List<V2TimGroupMemberFullInfo?>? groupMemberList = [];
+  List<String>? groupAdminIdsList = [];
   V2TimGroupMemberFullInfo? selfMemberInfo;
   double atPositionX = 0.0;
   double atPositionY = 0.0;
@@ -522,6 +523,14 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     if (res.code == 0 && groupMemberListRes != null) {
       final groupMemberListTemp = groupMemberListRes.memberInfoList ?? [];
       groupMemberList = [...?groupMemberList, ...groupMemberListTemp];
+      groupAdminIdsList = groupMemberList!
+          .where((member) =>
+              member?.role ==
+                  GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN ||
+              member?.role == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_OWNER)
+          .map((member) => member!.userID)
+          .toList();
+      ;
       groupMemberListSeq = groupMemberListRes.nextSeq ?? "0";
     } else if (res.code == 10010) {
       isGroupExist = false;
@@ -590,11 +599,40 @@ class TUIChatSeparateViewModel extends ChangeNotifier {
     if (messageInfo != null) {
       setLoadingMessageMap(convID, messageInfo);
     }
+    var targetId = id;
+    //如果是群聊
+    if (convType == ConvType.group) {
+      // final isAllowFriendsTemp = groupInfo?.customInfo?["allowAddFriends"];
+      final groupRedirectedTemp = groupInfo?.customInfo?["groupRedirected"];
+      // var isAllowFriends = isAllowFriendsTemp;
+      var groupRedirected = groupRedirectedTemp;
+      if (groupRedirectedTemp == null) {
+        groupRedirected = "0";
+      }
+      if (selfMemberInfo!.role !=
+              GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN &&
+          selfMemberInfo!.role !=
+              GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_OWNER) {
+        //如果管理员设置了群定向消息功能
+        if (groupRedirected == "1") {
+          // 创建定向消息
+          V2TimValueCallback<V2TimMsgCreateInfoResult> groupTarget =
+              await TencentImSDKPlugin.v2TIMManager
+                  .getMessageManager()
+                  .createTargetedGroupMessage(
+                    id: id,
+                    receiverList: groupAdminIdsList!,
+                  );
+          targetId = groupTarget.data!.id!;
+        }
+      }
+    }
+
     final sendMsgRes = await _messageService.sendMessage(
       priority: priority,
       localCustomData: localCustomData,
       isExcludedFromUnreadCount: isExcludedFromUnreadCount ?? false,
-      id: id,
+      id: targetId,
       receiver: receiver,
       needReadReceipt: needReadReceipt ??
           chatConfig.isShowGroupReadingStatus &&

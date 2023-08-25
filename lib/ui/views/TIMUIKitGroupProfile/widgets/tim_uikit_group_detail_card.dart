@@ -10,8 +10,10 @@ import 'package:tencent_cloud_chat_uikit/ui/widgets/text_input_bottom_sheet.dart
 
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/avatar.dart';
-
+import 'package:flutter/services.dart';
 import 'package:tencent_cloud_chat_uikit/base_widgets/tim_ui_kit_base.dart';
+import 'package:QVChat/utils/toast.dart';
+import 'package:QVChat/src/pages/group_new_profile.dart';
 
 class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
   final V2TimGroupInfo groupInfo;
@@ -25,6 +27,12 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
       this.isHavePermission = false,
       this.updateGroupName})
       : super(key: key);
+  void copyToClipboard(String groupId) {
+    Clipboard.setData(ClipboardData(text: groupId));
+    ToastUtils.toast("Copied to clipboard");
+    // 在剪贴板中复制ID
+    // 可以在这里添加一些反馈，如显示一个SnackBar
+  }
 
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
@@ -35,151 +43,153 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
     final showName = groupInfo.groupName ?? groupID;
     final isDesktopScreen =
         TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
-
     return InkWell(
-      onTapDown: !isHavePermission
-          ? null
-          : ((details) {
-              if (isDesktopScreen) {
-                TextInputBottomSheet.showTextInputBottomSheet(
-                    context: context,
-                    title: TIM_t("修改群名称"),
-                    initText: showName,
-                    initOffset: Offset(
-                        min(details.globalPosition.dx,
-                            MediaQuery.of(context).size.width - 350),
-                        min(details.globalPosition.dy + 20,
-                            MediaQuery.of(context).size.height - 470)),
-                    onSubmitted: (String newText) async {
-                      final text = newText.trim();
-                      if (updateGroupName != null) {
-                        updateGroupName!(text);
-                      } else {
-                        model.setGroupName(text);
-                      }
-                    },
-                    theme: theme);
-              } else {
-                showCupertinoModalPopup<String>(
-                  context: context,
-                  builder: (BuildContext context) {
-                    return CupertinoActionSheet(
-                        cancelButton: CupertinoActionSheetAction(
-                          onPressed: () {
-                            Navigator.pop(
-                              context,
-                            );
-                          },
-                          child: Text(TIM_t("取消")),
-                          isDefaultAction: false,
-                        ),
-                        actions: [
-                          CupertinoActionSheetAction(
-                            onPressed: () {
-                              controller.text = groupInfo.groupName ?? "";
-                              showModalBottomSheet(
-                                  isScrollControlled: true,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(10.0),
-                                  ),
-                                  context: context,
-                                  builder: (context) {
-                                    return Container(
-                                      decoration: const BoxDecoration(
-                                          color: Colors.white,
-                                          borderRadius: BorderRadius.only(
-                                              topLeft: Radius.circular(10.0),
-                                              topRight: Radius.circular(10.0))),
-                                      child: Column(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children: [
-                                          Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                vertical: 20),
-                                            child: Text(TIM_t("修改群名称")),
-                                          ),
-                                          Divider(
-                                              height: 2,
-                                              color: theme.weakDividerColor),
-                                          Padding(
-                                            padding: const EdgeInsets.all(20),
-                                            child: Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
-                                              children: [
-                                                TextField(
-                                                  controller: controller,
-                                                  decoration: InputDecoration(
-                                                      border: InputBorder.none,
-                                                      fillColor: theme
-                                                          .weakBackgroundColor,
-                                                      filled: true,
-                                                      isDense: true,
-                                                      hintText: ''),
-                                                ),
-                                                const SizedBox(
-                                                  height: 10,
-                                                ),
-                                                Text(
-                                                  TIM_t("修改群名称"),
-                                                  style: TextStyle(
-                                                      fontSize: 13,
-                                                      color:
-                                                          theme.weakTextColor),
-                                                  textAlign: TextAlign.left,
-                                                ),
-                                                const SizedBox(
-                                                  height: 30,
-                                                ),
-                                                SizedBox(
-                                                    width: double.infinity,
-                                                    child: ElevatedButton(
-                                                      onPressed: () {
-                                                        final text = controller
-                                                            .text
-                                                            .trim();
-                                                        if (updateGroupName !=
-                                                            null) {
-                                                          updateGroupName!(
-                                                              text);
-                                                        } else {
-                                                          model.setGroupName(
-                                                              text);
-                                                        }
-                                                        Navigator.pop(context);
-                                                        Navigator.pop(context);
-                                                      },
-                                                      child: Text(TIM_t("确定")),
-                                                    )),
-                                                const SizedBox(
-                                                  height: 20,
-                                                ),
-                                                Padding(
-                                                  padding: EdgeInsets.only(
-                                                      bottom:
-                                                          MediaQuery.of(context)
-                                                              .viewInsets
-                                                              .bottom),
-                                                )
-                                              ],
-                                            ),
-                                          )
-                                        ],
-                                      ),
-                                    );
-                                  });
-                            },
-                            child: Text(
-                              TIM_t("修改群名称"),
-                              style: TextStyle(color: theme.primaryColor),
-                            ),
-                            isDefaultAction: false,
-                          )
-                        ]);
-                  },
-                );
-              }
-            }),
+      onTapDown: (details) {
+        if (isDesktopScreen) {
+          TextInputBottomSheet.showTextInputBottomSheet(
+              context: context,
+              title: TIM_t("修改群名称"),
+              initText: showName,
+              initOffset: Offset(
+                  min(details.globalPosition.dx,
+                      MediaQuery.of(context).size.width - 350),
+                  min(details.globalPosition.dy + 20,
+                      MediaQuery.of(context).size.height - 470)),
+              onSubmitted: (String newText) async {
+                final text = newText.trim();
+                if (updateGroupName != null) {
+                  updateGroupName!(text);
+                } else {
+                  model.setGroupName(text);
+                }
+              },
+              theme: theme);
+        } else {
+          Navigator.of(context).push(MaterialPageRoute(
+              builder: (context) => GroupNewProfile(
+                  groupProfile: model.groupInfo,
+                  isHavePermission: isHavePermission,
+                  model: model)));
+          // showCupertinoModalPopup<String>(
+          //   context: context,
+          //   builder: (BuildContext context) {
+          //     return CupertinoActionSheet(
+          //         cancelButton: CupertinoActionSheetAction(
+          //           onPressed: () {
+          //             Navigator.pop(
+          //               context,
+          //             );
+          //           },
+          //           child: Text(TIM_t("取消")),
+          //           isDefaultAction: false,
+          //         ),
+          //         actions: [
+          //           CupertinoActionSheetAction(
+          //             onPressed: () {
+          //               controller.text = groupInfo.groupName ?? "";
+          //               showModalBottomSheet(
+          //                   isScrollControlled: true,
+          //                   shape: RoundedRectangleBorder(
+          //                     borderRadius: BorderRadius.circular(10.0),
+          //                   ),
+          //                   context: context,
+          //                   builder: (context) {
+          //                     return Container(
+          //                       decoration: const BoxDecoration(
+          //                           color: Colors.white,
+          //                           borderRadius: BorderRadius.only(
+          //                               topLeft: Radius.circular(10.0),
+          //                               topRight: Radius.circular(10.0))),
+          //                       child: Column(
+          //                         mainAxisSize: MainAxisSize.min,
+          //                         children: [
+          //                           Container(
+          //                             padding: const EdgeInsets.symmetric(
+          //                                 vertical: 20),
+          //                             child: Text(TIM_t("修改群名称")),
+          //                           ),
+          //                           Divider(
+          //                               height: 2,
+          //                               color: theme.weakDividerColor),
+          //                           Padding(
+          //                             padding: const EdgeInsets.all(20),
+          //                             child: Column(
+          //                               crossAxisAlignment:
+          //                                   CrossAxisAlignment.start,
+          //                               children: [
+          //                                 TextField(
+          //                                   controller: controller,
+          //                                   decoration: InputDecoration(
+          //                                       border: InputBorder.none,
+          //                                       fillColor: theme
+          //                                           .weakBackgroundColor,
+          //                                       filled: true,
+          //                                       isDense: true,
+          //                                       hintText: ''),
+          //                                 ),
+          //                                 const SizedBox(
+          //                                   height: 10,
+          //                                 ),
+          //                                 Text(
+          //                                   TIM_t("修改群名称"),
+          //                                   style: TextStyle(
+          //                                       fontSize: 13,
+          //                                       color:
+          //                                           theme.weakTextColor),
+          //                                   textAlign: TextAlign.left,
+          //                                 ),
+          //                                 const SizedBox(
+          //                                   height: 30,
+          //                                 ),
+          //                                 SizedBox(
+          //                                     width: double.infinity,
+          //                                     child: ElevatedButton(
+          //                                       onPressed: () {
+          //                                         final text = controller
+          //                                             .text
+          //                                             .trim();
+          //                                         if (updateGroupName !=
+          //                                             null) {
+          //                                           updateGroupName!(
+          //                                               text);
+          //                                         } else {
+          //                                           model.setGroupName(
+          //                                               text);
+          //                                         }
+          //                                         Navigator.pop(context);
+          //                                         Navigator.pop(context);
+          //                                       },
+          //                                       child: Text(TIM_t("确定")),
+          //                                     )),
+          //                                 const SizedBox(
+          //                                   height: 20,
+          //                                 ),
+          //                                 Padding(
+          //                                   padding: EdgeInsets.only(
+          //                                       bottom:
+          //                                           MediaQuery.of(context)
+          //                                               .viewInsets
+          //                                               .bottom),
+          //                                 )
+          //                               ],
+          //                             ),
+          //                           )
+          //                         ],
+          //                       ),
+          //                     );
+          //                   });
+          //             },
+          //             child: Text(
+          //               TIM_t("修改群名称"),
+          //               style: TextStyle(color: theme.primaryColor),
+          //             ),
+          //             isDefaultAction: false,
+          //           )
+          //         ]);
+          //   },
+          // );
+        }
+      },
       child: Container(
         color: Colors.white,
         padding: EdgeInsets.only(
@@ -214,21 +224,41 @@ class GroupProfileDetailCard extends TIMUIKitStatelessWidget {
                           fontWeight: FontWeight.w600),
                     ),
                     SizedBox(
-                      height: isDesktopScreen ? 4 : 8,
+                      height: isDesktopScreen ? 4 : 0,
                     ),
-                    SelectableText("ID: $groupID",
-                        style: TextStyle(
-                            fontSize: isDesktopScreen ? 13 : 13,
-                            color: theme.weakTextColor))
+                    Row(
+                      children: [
+                        Column(
+                          children: [
+                            SizedBox(
+                              height: 9,
+                            ),
+                            SelectableText("ID: $groupID",
+                                style: TextStyle(
+                                    fontSize: isDesktopScreen ? 13 : 13,
+                                    color: theme.weakTextColor)),
+                          ],
+                        ),
+                        IconButton(
+                          icon: Icon(Icons.content_copy, color: Colors.blue),
+                          onPressed: () {
+                            copyToClipboard(groupID);
+                          },
+                          iconSize: 20, // 设置图标大小
+                          constraints:
+                              BoxConstraints(maxHeight: 24, maxWidth: 24),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
             ),
-            if (isHavePermission)
-              Icon(
-                Icons.keyboard_arrow_right,
-                color: theme.weakTextColor,
-              )
+            // if (isHavePermission)
+            Icon(
+              Icons.keyboard_arrow_right,
+              color: theme.weakTextColor,
+            )
           ],
         ),
       ),

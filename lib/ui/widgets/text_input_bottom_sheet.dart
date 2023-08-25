@@ -9,14 +9,15 @@ class TextInputBottomSheet {
   static Widget inputBoxContent(
       {required BuildContext context,
       required String title,
-        String? tips,
+      String? tips,
       required Function(String text) onSubmitted,
       required TUITheme theme,
-      bool isShowCancel = false,
-        Offset? initOffset,
-        String? initText,
+      bool isShowCancel = true,
+      Offset? initOffset,
+      String? initText,
       required TextEditingController selectionController}) {
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     selectionController.text = initText ?? "";
     return SingleChildScrollView(
         child: Container(
@@ -24,8 +25,9 @@ class TextInputBottomSheet {
         top: 16,
         left: 16,
         right: 16,
-        bottom:
-            isDesktopScreen ? 16 : MediaQuery.of(context).viewInsets.bottom + 30,
+        bottom: isDesktopScreen
+            ? 16
+            : MediaQuery.of(context).viewInsets.bottom + 30,
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.start,
@@ -38,7 +40,6 @@ class TextInputBottomSheet {
           ),
           Divider(height: 2, color: theme.weakDividerColor),
           TextField(
-
             onSubmitted: (text) {
               onSubmitted(text);
               if (entry != null) {
@@ -51,19 +52,20 @@ class TextInputBottomSheet {
             autofocus: true,
             controller: selectionController,
           ),
-          if(tips != null) Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 5),
-                height: 40,
-                child: Text(
-                  tips,
-                  style: const TextStyle(color: Colors.grey, fontSize: 12),
-                ),
-              )
-            ],
-          ),
+          if (tips != null)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(vertical: 5),
+                  height: 40,
+                  child: Text(
+                    tips,
+                    style: const TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                )
+              ],
+            ),
           if (isDesktopScreen)
             Row(
               mainAxisAlignment: MainAxisAlignment.end,
@@ -180,19 +182,20 @@ class TextInputBottomSheet {
     String? initText,
   }) {
     TextEditingController _selectionController = TextEditingController();
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     if (isDesktopScreen) {
       if (entry != null) {
         return;
       }
       entry = OverlayEntry(builder: (BuildContext context) {
         return TUIKitDragArea(
-          closeFun: (){
-            if(entry != null){
-              entry?.remove();
-              entry = null;
-            }
-          },
+            closeFun: () {
+              if (entry != null) {
+                entry?.remove();
+                entry = null;
+              }
+            },
             initOffset: initOffset ??
                 Offset(MediaQuery.of(context).size.height * 0.5 + 20,
                     MediaQuery.of(context).size.height * 0.5 - 100),

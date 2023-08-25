@@ -20,6 +20,7 @@ class TIMUIKitSearch extends StatefulWidget {
   /// [Deprecated] : You are supposed to use [TIMUIKitSearchMsgDetail],
   /// if you tend to search inside a specific conversation, includes c2c and group.
   final V2TimConversation? conversation;
+  final bool noNeedBack;
 
   /// [Deprecated] : You are supposed to use [onEnterSearchInConversation],
   /// though the effects are the same.
@@ -37,11 +38,14 @@ class TIMUIKitSearch extends StatefulWidget {
   const TIMUIKitSearch(
       {required this.onTapConversation,
       Key? key,
-      @Deprecated("You are supposed to use [TIMUIKitSearchMsgDetail], if you tend to search inside a specific conversation, includes c2c and group")
-          this.conversation,
-      @Deprecated("You are supposed to use [onEnterSearchInConversation], though the effects are the same.")
-          this.onEnterConversation,
+      @Deprecated(
+          "You are supposed to use [TIMUIKitSearchMsgDetail], if you tend to search inside a specific conversation, includes c2c and group")
+      this.conversation,
+      @Deprecated(
+          "You are supposed to use [onEnterSearchInConversation], though the effects are the same.")
+      this.onEnterConversation,
       this.isAutoFocus = true,
+      this.noNeedBack = false,
       this.onEnterSearchInConversation,
       this.onBack})
       : super(key: key);
@@ -64,8 +68,19 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
   @override
   void initState() {
     super.initState();
+    if (widget.noNeedBack) {
+      searchTypes = [SearchType.group, SearchType.contact];
+      // model.initSearchWithData(
+      //     serviceLocator<TUISearchViewModel>().groupList ?? [],
+      //     serviceLocator<TUISearchViewModel>().friendList ?? []);
+    }
+
     model.initSearch();
+
     model.initConversationMsg();
+    Future.delayed(Duration(seconds: 1), () {
+      model.searchByKey("");
+    });
   }
 
   @override
@@ -118,15 +133,14 @@ class TIMUIKitSearchState extends TIMUIKitState<TIMUIKitSearch> {
                     child: Column(
                       children: [
                         if ((friendResultList.isEmpty ||
-                            !(searchTypes.contains(SearchType.contact))) &&
-                                (groupList.isEmpty ||
-                                    !(searchTypes
-                                        .contains(SearchType.group))) &&
-                                (totalMsgCount == 0 ||
-                                    !(searchTypes
-                                        .contains(SearchType.history))))
+                                !(searchTypes.contains(SearchType.contact))) &&
+                            (groupList.isEmpty ||
+                                !(searchTypes.contains(SearchType.group))) &&
+                            (totalMsgCount == 0 ||
+                                !(searchTypes.contains(SearchType.history))))
                           TIMUIKitSearchIndicator(
                             typeList: searchTypes,
+                            noNeedBack: widget.noNeedBack,
                             onChange: (list) {
                               setState(() {
                                 searchTypes = list;

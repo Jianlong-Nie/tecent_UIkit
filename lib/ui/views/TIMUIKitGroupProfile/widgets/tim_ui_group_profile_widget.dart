@@ -31,9 +31,18 @@ class TIMUIKitGroupProfileWidget {
   }
 
   static Widget groupNotification({
+    required Function(String) callback,
+    required V2TimGroupInfo groupInfo,
     bool isHavePermission = false,
   }) {
-    return GroupProfileNotification(
+    final String notification =
+        (groupInfo.notification != null && groupInfo!.notification!.isNotEmpty)
+            ? groupInfo!.notification!
+            : TIM_t("暂无群公告");
+    return ProfileItem(
+      title: TIM_t("群公告"),
+      callback: callback,
+      content: notification,
       isHavePermission: isHavePermission,
     );
   }
@@ -47,7 +56,8 @@ class TIMUIKitGroupProfileWidget {
   }
 
   static Widget operationDivider(TUITheme theme) {
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor() == DeviceType.Desktop;
     return Container(
       color: theme.weakDividerColor,
       height: isDesktopScreen ? 1 : 10,

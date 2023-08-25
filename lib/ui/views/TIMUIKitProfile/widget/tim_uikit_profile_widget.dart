@@ -238,16 +238,20 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
   }
 
   /// gender
-  static Widget genderBarWithArrow(int gender, bool smallCardMode) {
+  static Widget genderBarWithArrow(
+      int gender, bool smallCardMode, bool isSelf) {
     Map genderMap = {
       0: TIM_t("未填写"),
       1: TIM_t("男"),
       2: TIM_t("女"),
+      3: "Prefer not to respond",
+      4: "Transgender"
     };
     return SizedBox(
       child: TIMUIKitOperationItem(
         smallCardMode: smallCardMode,
         isEmpty: false,
+        showAllowEditStatus: isSelf,
         operationName: TIM_t("性别"),
         operationRightWidget: Text(genderMap[gender],
             textAlign: isDesktopScreen ? null : TextAlign.end),
@@ -274,8 +278,8 @@ class TIMUIKitProfileWidget extends TIMUIKitClass {
         isEmpty: false,
         showAllowEditStatus: false,
         operationName: TIM_t("生日"),
-        operationRightWidget:
-            Text(TIM_t("未填写"), textAlign: isDesktopScreen ? null : TextAlign.end),
+        operationRightWidget: Text(TIM_t("未填写"),
+            textAlign: isDesktopScreen ? null : TextAlign.end),
       );
     }
   }

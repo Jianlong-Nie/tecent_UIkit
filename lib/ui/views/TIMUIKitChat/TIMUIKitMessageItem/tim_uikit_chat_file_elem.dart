@@ -20,6 +20,10 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageIt
 import 'package:tencent_cloud_chat_uikit/ui/widgets/textSize.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:http/http.dart' as http;
+import 'package:QVChat/src/pages/file_download.dart';
+import 'package:flutter_file_view/flutter_file_view.dart';
+import 'package:QVChat/src/pages/page_file_view.dart';
+import 'package:path_provider/path_provider.dart';
 
 class TIMUIKitFileElem extends StatefulWidget {
   final String? messageID;
@@ -75,17 +79,17 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
           (V2TimMessageDownloadProgress messageProgress) async {
         if (messageProgress.msgID == widget.message.msgID) {
           if (messageProgress.isFinish) {
-            if(mounted){
+            if (mounted) {
               setState(() {
                 downloadProgress = 100;
               });
             }
           } else {
-            if(mounted){
+            if (mounted) {
               setState(() {
                 downloadProgress = (messageProgress.currentSize /
-                    messageProgress.totalSize *
-                    100)
+                        messageProgress.totalSize *
+                        100)
                     .ceil();
               });
             }
@@ -100,7 +104,7 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
 
   Future<String> getSavePath() async {
     String savePathWithAppPath =
-        '/storage/emulated/0/Android/data/com.tencent.flutter.tuikit/cache/' +
+        '/storage/emulated/0/Android/data/com.quantvortex.im2023/cache/' +
             (widget.message.msgID ?? "") +
             widget.fileElem!.fileName!;
     return savePathWithAppPath;
@@ -109,6 +113,28 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
   Future<bool> hasFile() async {
     if (PlatformUtils().isWeb) {
       return true;
+    }
+    final tempDir = Directory.systemTemp;
+    if (widget.message.fileElem!.UUID != null) {
+      final uuid = widget.message.fileElem!.UUID?.split(".")[0];
+      final file = File(tempDir.path +
+          '/' +
+          ("file_" + (uuid ?? "") + (widget.message.fileElem!.fileName ?? "")));
+      final fileExists = await file.exists();
+
+      if (fileExists) {
+        final fileLength = await file.length();
+        // Replace with the actual expected file size
+        final expectedFileSize = widget.message.fileElem!.fileSize;
+        if (fileLength == expectedFileSize) {
+          filePath =
+              tempDir.path + '/' + (widget.message.fileElem!.fileName ?? "");
+          setState(() {
+            downloadProgress = 100;
+          });
+          return true;
+        }
+      }
     }
 
     if (model.getMessageProgress(widget.messageID) == 100 ||
@@ -197,6 +223,12 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
 
   tryOpenFile(context, theme) async {
     if (PlatformUtils().isMobile) {
+      // FileViewController controller = FileViewController.asset(filePath);
+      // Navigator.of(context).push(
+      //   MaterialPageRoute<void>(
+      //     builder: (_) => FileViewPage(controller: controller!),
+      //   ),
+      // );
       if (PlatformUtils().isIOS) {
         if (!await Permissions.checkPermission(
             context, Permission.photosAddOnly.value, theme!, false)) {
@@ -225,7 +257,9 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
         OpenFile.open(filePath);
       }
       // ignore: empty_catches
-    } catch (e) {}
+    } catch (e) {
+      print(e);
+    }
   }
 
   void downloadWebFile(String fileUrl) async {
@@ -289,6 +323,24 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
         message: widget.message,
         child: GestureDetector(
             onTap: () async {
+              final isFile = await hasFile();
+              if (isFile && received == 100) {
+                tryOpenFile(context, theme);
+                return;
+              }
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => FileViewerPage(
+                        filePath: filePath,
+                        message: widget.message,
+                        fileName: fileName,
+                        fileFormat: fileFormat,
+                        fileSize: fileSize,
+                        messageID: widget.messageID,
+                        theme: theme),
+                  ));
+              return;
               if (PlatformUtils().isWeb) {
                 downloadWebFile(widget.fileElem?.path ?? "");
                 return;

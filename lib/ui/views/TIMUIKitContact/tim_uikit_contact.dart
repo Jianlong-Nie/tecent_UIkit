@@ -17,6 +17,10 @@ class TIMUIKitContact extends StatefulWidget {
   /// the list on top
   final List<TopListItem>? topList;
 
+  final bool? needExpandList;
+  final bool? showGroup;
+  final bool? showContacts;
+
   /// the builder for the list on top
   final Widget? Function(TopListItem item)? topListItemBuilder;
 
@@ -34,6 +38,9 @@ class TIMUIKitContact extends StatefulWidget {
       this.onTapItem,
       this.lifeCycle,
       this.topList,
+      this.needExpandList = false,
+      this.showGroup = true,
+      this.showContacts = true,
       this.topListItemBuilder,
       this.emptyBuilder,
       this.isShowOnlineStatus = true})
@@ -47,7 +54,6 @@ class _TIMUIKitContactState extends TIMUIKitState<TIMUIKitContact> {
   final TUIFriendShipViewModel model = serviceLocator<TUIFriendShipViewModel>();
   String currentItem = "";
 
-
   @override
   void dispose() {
     super.dispose();
@@ -56,7 +62,8 @@ class _TIMUIKitContactState extends TIMUIKitState<TIMUIKitContact> {
   @override
   Widget tuiBuild(BuildContext context, TUIKitBuildValue value) {
     final theme = value.theme;
-    final isDesktopScreen = TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
+    final isDesktopScreen =
+        TUIKitScreenUtils.getFormFactor(context) == DeviceType.Desktop;
     return MultiProvider(
         providers: [
           ChangeNotifierProvider.value(value: model),
@@ -71,13 +78,16 @@ class _TIMUIKitContactState extends TIMUIKitState<TIMUIKitContact> {
             emptyBuilder: widget.emptyBuilder,
             isShowOnlineStatus: widget.isShowOnlineStatus,
             contactList: memberList,
-            onTapItem: (item){
-              if(isDesktopScreen){
+            needExpandList: widget.needExpandList,
+            showContacts: widget.showContacts,
+            showGroup: widget.showGroup,
+            onTapItem: (item) {
+              if (isDesktopScreen) {
                 setState(() {
                   currentItem = item.userID;
                 });
               }
-              if(widget.onTapItem != null){
+              if (widget.onTapItem != null) {
                 widget.onTapItem!(item);
               }
             },

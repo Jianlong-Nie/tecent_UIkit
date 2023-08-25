@@ -12,6 +12,7 @@ import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/platform.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/TIMUIKitMessageItem/TIMUIKitMessageReaction/tim_uikit_message_reaction_wrapper.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitChat/tim_uikit_medias_preview.dart';
 import 'package:tencent_cloud_chat_uikit/ui/widgets/video_screen.dart';
 import 'package:tencent_open_file/tencent_open_file.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -212,10 +213,9 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
           Navigator.of(context).push(
             PageRouteBuilder(
               opaque: false, // set to false
-              pageBuilder: (_, __, ___) => VideoScreen(
+              pageBuilder: (_, __, ___) => TIMUIKitMediaPreview(
                 message: widget.message,
-                heroTag: heroTag,
-                videoElement: stateElement,
+                conId: widget.chatModel.conversationID,
               ),
             ),
           );
@@ -288,8 +288,8 @@ class _TIMUIKitVideoElemState extends TIMUIKitState<TIMUIKitVideoElem> {
                                 right: 10,
                                 bottom: 10,
                                 child: Text(
-                                    MessageUtils.formatVideoTime(widget
-                                                .message.videoElem!.duration!)
+                                    MessageUtils.formatVideoTime(
+                                            widget.message.videoElem!.duration!)
                                         .toString(),
                                     style: const TextStyle(
                                         color: Colors.white, fontSize: 12))),
