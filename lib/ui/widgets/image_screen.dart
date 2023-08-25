@@ -90,15 +90,39 @@ class _ImageScreenState extends TIMUIKitState<ImageScreen>
             ),
             child: Stack(alignment: Alignment.center, children: [
               Positioned(
-                  top: 0,
-                  left: 0,
-                  bottom: 0,
-                  right: 0,
+                top: 0,
+                left: 0,
+                bottom: 0,
+                right: 0,
+                child: ExtendedImageSlidePage(
+                  key: slidePagekey,
+                  slideAxis: SlideAxis.both,
+                  slidePageBackgroundHandler: (Offset offset, Size size) {
+                    if (orientation == Orientation.landscape) {
+                      return Colors.black;
+                    }
+                    double opacity = 0.0;
+                    opacity = offset.distance /
+                        (Offset(size.width, size.height).distance / 2.0);
+                    return Colors.black
+                        .withOpacity(min(1.0, max(1.0 - opacity, 0.0)));
+                  },
+                  slideType: SlideType.onlyImage,
+                  slideEndHandler: (
+                    Offset offset, {
+                    ExtendedImageSlidePageState? state,
+                    ScaleEndDetails? details,
+                  }) {
+                    final vy = details?.velocity.pixelsPerSecond.dy ?? 0;
+                    final oy = offset.dy;
+                    if (vy > 300 || oy > 100) {
+                      return true;
+                    }
+                    return null;
+                  },
                   child: GestureDetector(
                     onTap: close,
-                    child: Container(
-                      color: Colors.black,
-                      child: HeroWidget(
+                    child: HeroWidget(
                         tag: widget.heroTag,
                         slidePagekey: slidePagekey,
                         child: ExtendedImage(
@@ -182,7 +206,7 @@ class _ImageScreenState extends TIMUIKitState<ImageScreen>
                             }
 
                             _doubleClickAnimationListener = () {
-                              //print(_animation.value);
+                              //outputLogger.i(_animation.value);
                               state.handleDoubleTap(
                                   scale: _doubleClickAnimation!.value,
                                   doubleTapPosition: pointerDownPosition);
@@ -237,7 +261,7 @@ class _ImageScreenState extends TIMUIKitState<ImageScreen>
                 ),
               if (widget.downloadFn != null)
                 Positioned(
-                  right: 60,
+                  right: 10,
                   bottom: 50,
                   child: IconButton(
                     icon: Image.asset(

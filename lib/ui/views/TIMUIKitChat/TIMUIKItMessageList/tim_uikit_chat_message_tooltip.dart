@@ -6,6 +6,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
+import 'package:tencent_cloud_chat_uikit/business_logic/view_models/tui_self_info_view_model.dart';
 import 'package:tencent_cloud_chat_uikit/data_services/services_locatar.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/common_utils.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/message.dart';
@@ -79,6 +80,8 @@ class TIMUIKitMessageTooltip extends StatefulWidget {
 class TIMUIKitMessageTooltipState
     extends TIMUIKitState<TIMUIKitMessageTooltip> {
   final TUIChatGlobalModel globalModal = serviceLocator<TUIChatGlobalModel>();
+  final TUISelfInfoViewModel selfInfoViewModel =
+      serviceLocator<TUISelfInfoViewModel>();
   bool isShowMoreSticker = false;
   bool isShowOpenFile = false;
   String filePath = "";
@@ -104,24 +107,14 @@ class TIMUIKitMessageTooltipState
     }
     if (PlatformUtils().isDesktop) {
       if (widget.message.fileElem != null) {
-        if (globalModal.getMessageProgress(widget.message.msgID) == 100) {
-          String savePath =
-              TencentUtils.checkString(widget.message.fileElem!.localUrl) ??
-                  globalModal.getFileMessageLocation(widget.message.msgID);
-          File f = File(savePath);
-          if (f.existsSync() && widget.message.msgID != null) {
-            filePath = savePath;
-            isShowOpenFile = true;
-            return;
-          }
-          isShowOpenFile = false;
-          return;
-        }
-        String savePath = widget.message.fileElem!.localUrl ?? '';
+        String savePath = TencentUtils.checkString(
+                globalModal.getFileMessageLocation(widget.message.msgID)) ??
+            TencentUtils.checkString(widget.message.fileElem!.localUrl) ??
+            widget.message.fileElem?.path ??
+            "";
         File f = File(savePath);
         if (f.existsSync() && widget.message.msgID != null) {
           filePath = savePath;
-          globalModal.setMessageProgress(widget.message.msgID!, 100);
           isShowOpenFile = true;
           return;
         }
@@ -189,9 +182,9 @@ class TIMUIKitMessageTooltipState
   }
 
   bool isAdminCanRecall() {
-    if (widget.groupMemberInfo != null &&
-        widget.model.chatConfig.isGroupAdminRecallEnabled) {
-      final selfRole = widget.groupMemberInfo!.role;
+    if (widget.model.chatConfig.isGroupAdminRecallEnabled) {
+      final selfMemberInfo = widget.groupMemberInfo ?? widget.model.selfMemberInfo;
+      final selfRole = selfMemberInfo?.role;
       return selfRole == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_ADMIN ||
           selfRole == GroupMemberRoleType.V2TIM_GROUP_MEMBER_ROLE_OWNER;
     } else {
@@ -399,14 +392,14 @@ class TIMUIKitMessageTooltipState
   }
 
   _onOpenDesktop(String path) {
-    if (PlatformUtils().isDesktop) {
-      OpenFile.open(path);
-    } else {
-      launchUrl(
-        Uri.parse(path),
-        mode: LaunchMode.externalApplication,
-      );
-    }
+    try {
+      if (PlatformUtils().isDesktop && !PlatformUtils().isWindows) {
+        launchUrl(Uri.file(path));
+      } else {
+        OpenFile.open(path);
+      }
+      // ignore: empty_catches
+    } catch (e) {}
   }
 
   _onTap(String operation, TUIChatSeparateViewModel model) async {
@@ -415,32 +408,40 @@ class TIMUIKitMessageTooltipState
     switch (operation) {
       case "open":
         if (widget.message.fileElem != null) {
-          _onOpenDesktop(widget.message.fileElem!.localUrl ??
+          _onOpenDesktop(TencentUtils.checkString(
+                  globalModal.getFileMessageLocation(widget.message.msgID)) ??
+              TencentUtils.checkString(widget.message.fileElem!.localUrl) ??
               widget.message.fileElem?.path ??
               "");
         } else if (widget.message.imageElem != null) {
-          _onOpenDesktop(widget.message.imageElem!.imageList?[0]?.localUrl ??
-              widget.message.imageElem?.path ??
+          _onOpenDesktop(TencentUtils.checkString(
+                  widget.message.imageElem!.imageList?[0]?.localUrl) ??
+              TencentUtils.checkString(widget.message.imageElem?.path) ??
               "");
         } else if (widget.message.videoElem != null) {
-          _onOpenDesktop(widget.message.videoElem!.localVideoUrl ??
-              widget.message.videoElem?.videoPath ??
+          _onOpenDesktop(TencentUtils.checkString(
+                  widget.message.videoElem!.localVideoUrl) ??
+              TencentUtils.checkString(widget.message.videoElem?.videoPath) ??
               "");
         }
         break;
       case "finder":
         String savePath = "";
         if (widget.message.fileElem != null) {
-          savePath = (widget.message.fileElem!.localUrl ??
+          savePath = (TencentUtils.checkString(
+                  globalModal.getFileMessageLocation(widget.message.msgID)) ??
+              TencentUtils.checkString(widget.message.fileElem!.localUrl) ??
               widget.message.fileElem?.path ??
               "");
         } else if (widget.message.imageElem != null) {
-          savePath = (widget.message.imageElem!.imageList?[0]?.localUrl ??
-              widget.message.imageElem?.path ??
+          savePath = (TencentUtils.checkString(
+                  widget.message.imageElem!.imageList?[0]?.localUrl) ??
+              TencentUtils.checkString(widget.message.imageElem?.path) ??
               "");
         } else if (widget.message.videoElem != null) {
-          savePath = (widget.message.videoElem!.localVideoUrl ??
-              widget.message.videoElem?.videoPath ??
+          savePath = (TencentUtils.checkString(
+                  widget.message.videoElem!.localVideoUrl) ??
+              TencentUtils.checkString(widget.message.videoElem?.videoPath) ??
               "");
         }
         final String fileDir = path.dirname(savePath);

@@ -150,6 +150,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                 onChanged: (isChecked) {
                   if (isChecked) {
                     if (selectedMemberIsOverFlow()) {
+                      selectedMember = [item];
+                      setState(() {});
                       return;
                     }
                     selectedMember.add(item);
@@ -303,6 +305,8 @@ class _ContactListState extends TIMUIKitState<ContactList> {
                     selectedMember.remove(memberInfo);
                   } else {
                     if (selectedMemberIsOverFlow()) {
+                      selectedMember = [memberInfo];
+                      setState(() {});
                       return;
                     }
                     selectedMember.add(memberInfo);
