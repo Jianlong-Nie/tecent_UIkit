@@ -463,7 +463,7 @@ In addition, there are some significant changes compared to version 2.0.0-previe
 
 ## 0.0.9
 
-* Addition: Offline push along with [tencent_chat_push_for_china](https://pub.dev/packages/tencent_chat_push_for_china).
+* Addition: Offline push along with [tim_ui_kit_push_plugin](https://pub.dev/packages/tim_ui_kit_push_plugin).
 * Adapt: Flutter 3.0.0.
 * Optimization: Local preview of multimedia files.
 

@@ -117,6 +117,33 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
     if (PlatformUtils().isWeb) {
       return true;
     }
+    final tempDir = Directory.systemTemp;
+    if (widget.message.fileElem!.UUID != null) {
+      final uuid = widget.message.fileElem!.UUID?.split(".")[0];
+      final tempPath = tempDir.path +
+          '/' +
+          ("file_" + (uuid ?? "") + (widget.message.fileElem!.fileName ?? ""));
+      final file = File(tempPath);
+      final fileExists = await file.exists();
+      if (fileExists) {
+        final fileLength = await file.length();
+        // Replace with the actual expected file size
+        final expectedFileSize = widget.message.fileElem!.fileSize;
+        if (fileLength == expectedFileSize) {
+          filePath = tempPath;
+          if (downloadProgress != 100) {
+            setState(() {
+              downloadProgress = 100;
+            });
+          }
+          if (model.getMessageProgress(widget.messageID) != 100) {
+            model.setMessageProgress(widget.messageID!, 100);
+          }
+          return true;
+        }
+      }
+    }
+
     String savePath = TencentUtils.checkString(
             model.getFileMessageLocation(widget.messageID)) ??
         TencentUtils.checkString(widget.message.fileElem!.localUrl) ??
@@ -344,6 +371,24 @@ class _TIMUIKitFileElemState extends TIMUIKitState<TIMUIKitFileElem> {
             message: widget.message,
             child: GestureDetector(
                 onTap: () async {
+                  final isFile = await hasFile();
+                  if (isFile && received == 100) {
+                    tryOpenFile(context, theme);
+                    return;
+                  }
+                  Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => FileViewerPage(
+                            filePath: filePath,
+                            message: widget.message,
+                            fileName: fileName,
+                            fileFormat: fileFormat,
+                            fileSize: fileSize,
+                            messageID: widget.messageID,
+                            theme: theme),
+                      ));
+                  return;
                   try {
                     if (PlatformUtils().isWeb) {
                       if (!isWebDownloading) {

@@ -61,11 +61,8 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
   }
 
   //保存网络视频到本地
-  Future<void> _saveNetworkVideo(
-    context,
-    String videoUrl, {
-    bool isAsset = true,
-  }) async {
+  Future<void> _saveNetworkVideo(context, String videoUrl,
+      {bool isAsset = true, bool needShare = false}) async {
     if (PlatformUtils().isWeb) {
       RegExp exp = RegExp(r"((\.){1}[^?]{2,4})");
       String? suffix = exp.allMatches(videoUrl).last.group(0);
@@ -131,6 +128,10 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
           var result = await ImageGallerySaver.saveFile(savePath);
           if (PlatformUtils().isIOS) {
             if (result['isSuccess']) {
+              if (needShare) {
+                Share.shareXFiles([XFile(savePath)], text: '');
+                return;
+              }
               onTIMCallback(TIMCallback(
                   type: TIMCallbackType.INFO,
                   infoRecommendText: TIM_t("视频保存成功"),
@@ -143,6 +144,10 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
             }
           } else {
             if (result != null) {
+              if (needShare) {
+                Share.shareXFiles([XFile(savePath)], text: '');
+                return;
+              }
               onTIMCallback(TIMCallback(
                   type: TIMCallbackType.INFO,
                   infoRecommendText: TIM_t("视频保存成功"),
@@ -166,6 +171,10 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
     var result = await ImageGallerySaver.saveFile(savePath);
     if (PlatformUtils().isIOS) {
       if (result['isSuccess']) {
+        if (needShare) {
+          Share.shareXFiles([XFile(savePath)], text: '');
+          return;
+        }
         onTIMCallback(TIMCallback(
             type: TIMCallbackType.INFO,
             infoRecommendText: TIM_t("视频保存成功"),
@@ -178,6 +187,10 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
       }
     } else {
       if (result != null) {
+        if (needShare) {
+          Share.shareXFiles([XFile(savePath)], text: '');
+          return;
+        }
         onTIMCallback(TIMCallback(
             type: TIMCallbackType.INFO,
             infoRecommendText: TIM_t("视频保存成功"),
@@ -192,23 +205,17 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
     return;
   }
 
-  Future<void> _saveVideo() async {
+  Future<void> _saveVideo({bool needShare = false}) async {
     if (PlatformUtils().isWeb) {
-      return await _saveNetworkVideo(
-        context,
-        widget.videoElement.videoPath!,
-        isAsset: true,
-      );
+      return await _saveNetworkVideo(context, widget.videoElement.videoPath!,
+          isAsset: true, needShare: needShare);
     }
     if (widget.videoElement.videoPath != '' &&
         widget.videoElement.videoPath != null) {
       File f = File(widget.videoElement.videoPath!);
       if (f.existsSync()) {
-        return await _saveNetworkVideo(
-          context,
-          widget.videoElement.videoPath!,
-          isAsset: true,
-        );
+        return await _saveNetworkVideo(context, widget.videoElement.videoPath!,
+            isAsset: true, needShare: needShare);
       }
     }
     if (widget.videoElement.localVideoUrl != '' &&
@@ -216,17 +223,12 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
       File f = File(widget.videoElement.localVideoUrl!);
       if (f.existsSync()) {
         return await _saveNetworkVideo(
-          context,
-          widget.videoElement.localVideoUrl!,
-          isAsset: true,
-        );
+            context, widget.videoElement.localVideoUrl!,
+            isAsset: true, needShare: needShare);
       }
     }
-    return await _saveNetworkVideo(
-      context,
-      widget.videoElement.videoUrl!,
-      isAsset: false,
-    );
+    return await _saveNetworkVideo(context, widget.videoElement.videoUrl!,
+        isAsset: false, needShare: needShare);
   }
 
   double getVideoHeight() {
@@ -297,9 +299,14 @@ class _VideoScreenState extends TIMUIKitState<VideoScreen> {
           showControlsOnInitialize: false,
           allowPlaybackSpeedChanging: false,
           aspectRatio: w == 0 || h == 0 ? null : w / h,
-          customControls: VideoCustomControls(downloadFn: () async {
-            return await _saveVideo();
-          }));
+          customControls: VideoCustomControls(
+            downloadFn: () async {
+              return await _saveVideo();
+            },
+            shareFn: () async {
+              return await _saveVideo(needShare: true);
+            },
+          ));
       setState(() {
         videoPlayerController = player;
         chewieController = controller;

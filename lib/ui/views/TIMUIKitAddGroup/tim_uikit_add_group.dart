@@ -139,10 +139,10 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
                   "ID: $groupID",
                   style: TextStyle(fontSize: 12, color: theme.weakTextColor),
                 ),
-                Text(
-                  "群类型: $groupType",
-                  style: TextStyle(fontSize: 12, color: theme.weakTextColor),
-                )
+                // Text(
+                //   "群类型: $groupType",
+                //   style: TextStyle(fontSize: 12, color: theme.weakTextColor),
+                // )
               ],
             )
           ],
@@ -228,7 +228,7 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
     super.dispose();
   }
 
-  searchGroup(String params) async {
+  searchGroupByName(String params) async {
     final response1 = await _chatAppController.seachGroups(params);
     print("这是怎么回事呢");
     print(response1);
@@ -247,6 +247,26 @@ class _TIMUIKitAddGroupState extends TIMUIKitState<TIMUIKitAddGroup> {
           groupResult = [];
         });
       }
+    }
+  }
+
+  searchGroup(String params) async {
+    final response2 = await _groupServices.getGroupsInfo(groupIDList: [params]);
+    if (response2 != null && response2.isNotEmpty) {
+      print(response2);
+      List<V2TimGroupInfo>? groupResult1 = response2
+          .where((e) => e.resultCode == 0)
+          .map((e) => e.groupInfo!)
+          .toList();
+      if (groupResult1.isNotEmpty) {
+        setState(() {
+          groupResult = groupResult1;
+        });
+      } else {
+        searchGroupByName(params);
+      }
+    } else {
+      searchGroupByName(params);
     }
   }
 

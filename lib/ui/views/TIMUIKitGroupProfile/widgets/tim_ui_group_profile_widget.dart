@@ -1,5 +1,7 @@
 import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:tencent_cloud_chat_uikit/ui/utils/screen_utils.dart';
+import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitProfile/widget/tim_uikit_operation_item.dart';
 import 'package:tencent_im_base/tencent_im_base.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_ui_group_search_msg.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_add_opt.dart';
@@ -32,6 +34,8 @@ class TIMUIKitGroupProfileWidget {
 
   static Widget groupNotification({
     required Function(String) callback,
+    required Function() onShareQRCode,
+    required Function() onShareContact,
     required V2TimGroupInfo groupInfo,
     bool isHavePermission = false,
   }) {
@@ -39,12 +43,49 @@ class TIMUIKitGroupProfileWidget {
         (groupInfo.notification != null && groupInfo!.notification!.isNotEmpty)
             ? groupInfo!.notification!
             : TIM_t("暂无群公告");
-    return ProfileItem(
-      title: TIM_t("群公告"),
-      callback: callback,
-      content: notification,
-      isHavePermission: isHavePermission,
-    );
+    return Column(children: [
+      Container(
+        child: InkWell(
+          onTap: () {
+            onShareContact();
+            // Navigator.push(
+            //     context,
+            //     MaterialPageRoute(
+            //         builder: (context) =>
+            //             ShareContact(userProfile: userInfo.userProfile)));
+          },
+          child: TIMUIKitOperationItem(
+            isEmpty: false,
+            operationName: "Share contact",
+            showAllowEditStatus: true,
+            operationRightWidget: Text(
+              "",
+              textAlign: TextAlign.end,
+            ),
+          ),
+        ),
+      ),
+      InkWell(
+        onTap: onShareQRCode,
+        child: TIMUIKitOperationItem(
+          isEmpty: false,
+          operationName: "Group QR Code",
+          operationRightWidget: Align(
+              alignment: Alignment.centerRight,
+              child: Image.asset(
+                "assets/qrcodeicon.png",
+                width: 20,
+                height: 20,
+              )),
+        ),
+      ),
+      ProfileItem(
+        title: TIM_t("群公告"),
+        callback: callback,
+        content: notification,
+        isHavePermission: isHavePermission,
+      )
+    ]);
   }
 
   static Widget groupManage() {

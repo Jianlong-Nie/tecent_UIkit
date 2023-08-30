@@ -424,16 +424,10 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
         Navigator.of(context).push(
           PageRouteBuilder(
               opaque: false,
-              pageBuilder: (_, __, ___) => ImageScreen(
-                  imageProvider: CachedNetworkImageProvider(
-                    imgUrl ?? "",
-                    cacheKey: widget.message.msgID,
-                  ),
-                  heroTag: heroTag,
-                  messageID: widget.message.msgID,
-                  downloadFn: () async {
-                    return await _saveImg(theme!);
-                  })),
+              pageBuilder: (_, __, ___) => TIMUIKitMediaPreview(
+                    message: widget.message,
+                    conId: widget.chatModel.conversationID,
+                  )),
         );
       }
     } else {
@@ -445,15 +439,11 @@ class _TIMUIKitImageElem extends TIMUIKitState<TIMUIKitImageElem> {
       } else {
         Navigator.of(context).push(
           PageRouteBuilder(
-            opaque: false, // set to false
-            pageBuilder: (_, __, ___) => ImageScreen(
-                imageProvider: FileImage(File(imgPath ?? "")),
-                heroTag: heroTag,
-                messageID: widget.message.msgID,
-                downloadFn: () async {
-                  return await _saveImg(theme!);
-                }),
-          ),
+              opaque: false, // set to false
+              pageBuilder: (_, __, ___) => TIMUIKitMediaPreview(
+                    message: widget.message,
+                    conId: widget.chatModel.conversationID,
+                  )),
         );
       }
     }

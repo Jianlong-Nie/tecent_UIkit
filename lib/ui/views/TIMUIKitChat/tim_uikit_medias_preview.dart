@@ -373,10 +373,11 @@ class _TIMUIKitMediaPreviewState extends TIMUIKitState<TIMUIKitMediaPreview> {
           }
 
           return VideoScreen(
-            message: message,
-            heroTag: heroTag,
-            // videoElement: message.videoElem!,
-          );
+              message: message,
+              heroTag: heroTag,
+              videoElement: message.videoElem!
+              // videoElement: message.videoElem!,
+              );
         },
         index: currentIndex,
         itemCount: filteredMessages.length,

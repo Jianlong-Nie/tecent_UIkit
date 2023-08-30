@@ -14,7 +14,10 @@ import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/t
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_button_area.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_manage.dart';
 import 'package:tencent_cloud_chat_uikit/ui/views/TIMUIKitGroupProfile/widgets/tim_uikit_group_notification.dart';
+import 'package:get/get.dart';
+import 'package:QVChat/src/services/chatApp.dart';
 export 'package:tencent_cloud_chat_uikit/ui/widgets/transimit_group_owner_select.dart';
+import 'package:QVChat/src/share_contact.dart';
 
 typedef GroupProfileBuilder = Widget Function(BuildContext context,
     V2TimGroupInfo groupInfo, List<V2TimGroupMemberFullInfo?> groupMemberList);
@@ -83,7 +86,9 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
   final model = TUIGroupProfileModel();
   final TUIGroupListenerModel groupListenerModel =
       serviceLocator<TUIGroupListenerModel>();
+  final ChatAppController _chatController = Get.put(ChatAppController());
 
+  GlobalKey repaintKey1 = GlobalKey();
   @override
   void initState() {
     super.initState();
@@ -230,14 +235,21 @@ class _TIMUIKitGroupProfileState extends TIMUIKitState<TIMUIKitGroupProfile> {
                           toDefaultNoticePage,
                           model.setGroupNotification)
                       : TIMUIKitGroupProfileWidget.groupNotification(
-                         
-                         
-                         
-                         
-                         
-                         
-                         
                           groupInfo: groupInfo,
+                          onShareQRCode: () {
+                            _chatController.showQRCodePopup(
+                                repaintKey: repaintKey1,
+                                context: context,
+                                isGroup: true,
+                                groupId: groupInfo.groupID);
+                          },
+                          onShareContact: () {
+                            Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (context) =>
+                                        ShareContact(groupInfo: groupInfo)));
+                          },
                           callback: (String notification) async {
                             await model.setGroupNotification(notification);
                             Navigator.of(context).pop();
